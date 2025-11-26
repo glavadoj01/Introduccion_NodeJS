@@ -16,15 +16,15 @@ app.listen(3000, () => {
 	console.log("Servidor escuchando en el puerto 3000");
 });
 
-async function obtenerCoordenadas(city = "zafra", format = "json") {
-	// En consola he escrito: node index.js "Sevilla"
-	// Si no se pasa ningún argumento, por defecto toma "zafra"
-	// Si se pasa un argumento, toma el valor pasado (en este caso "Sevilla")
-	// process.argv toma todos los argumentos pasados desde la consola
-	// .slice(2) elimina los dos primeros argumentos que son "node" y "index.js"
-	// [0] toma el primer argumento de la respuesta (puede haber más de 1 ciudad devuelta)
-	// Si miramo
-	const ciudad = process.argv.slice(2)[0] || city;
+async function obtenerCoordenadas(ciudad, format = "json") {
+	/* Previo a express => Para ejecución por consola:
+	En consola he escrito: node index.js "Sevilla"
+	Si no se pasa ningún argumento, por defecto toma "zafra"
+	Si se pasa un argumento, toma el valor pasado (en este caso "Sevilla")
+	process.argv toma todos los argumentos pasados desde la consola
+	.slice(2) elimina los dos primeros argumentos que son "node" y "index.js"
+	[0] toma el primer argumento de la respuesta (puede haber más de 1 ciudad devuelta)
+	const ciudad = process.argv.slice(2)[0] || city; */
 
 	const url = `https://geocoding-api.open-meteo.com/v1/search?name=${ciudad}&count=1&language=es&format=${format}`;
 
@@ -51,13 +51,14 @@ async function obtenerTiempo(latitud, longitud) {
 	const tiempoCiudad = {
 		hora: new Date(datos.current_weather.time),
 		horasRegistro: datos.hourly.time.map(h => new Date(h)),
-		horaMasProxima: null,
+		horaMasProxima: new Date(datos.current_weather.time),
 		temperatura: datos.current_weather.temperature,
 		escalaTemperatura: datos.current_weather_units.temperature,
 		viento: datos.current_weather.windspeed,
 		escalaViento: datos.current_weather_units.windspeed,
 	};
-	tiempoCiudad.horaMasProxima = tiempoCiudad.hora.setMinutes(0, 0, 0);
+
+	tiempoCiudad.horaMasProxima.setMinutes(0, 0, 0);
 
 	return tiempoCiudad;
 }
