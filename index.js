@@ -7,8 +7,9 @@ app.get("/", (req, res) => {
 
 app.get("/clima", async (req, res) => {
 	const ciudad = req.query.ciudad || "zafra";
+	if (!ciudad) return res.status(400).json({ error: "Falta el parámetro 'ciudad'" });
 	const { latitud, longitud } = await obtenerCoordenadas(ciudad);
-	let clima = await obtenerTiempo(latitud, longitud);
+	let clima = await obtenerTiempo(latitud, longitud, ciudad);
 	return res.json(clima);
 });
 
@@ -16,15 +17,15 @@ app.listen(3000, () => {
 	console.log("Servidor escuchando en el puerto 3000");
 });
 
-async function obtenerCoordenadas(city = "zafra", format = "json") {
+async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 	// En consola he escrito: node index.js "Sevilla"
 	// Si no se pasa ningún argumento, por defecto toma "zafra"
 	// Si se pasa un argumento, toma el valor pasado (en este caso "Sevilla")
 	// process.argv toma todos los argumentos pasados desde la consola
 	// .slice(2) elimina los dos primeros argumentos que son "node" y "index.js"
 	// [0] toma el primer argumento de la respuesta (puede haber más de 1 ciudad devuelta)
-	// Si miramo
-	const ciudad = process.argv.slice(2)[0] || city;
+
+	// const ciudad = process.argv.slice(2)[0] || city;
 
 	const url = `https://geocoding-api.open-meteo.com/v1/search?name=${ciudad}&count=1&language=es&format=${format}`;
 
@@ -42,22 +43,35 @@ async function obtenerCoordenadas(city = "zafra", format = "json") {
 	return coordenadas;
 }
 
-async function obtenerTiempo(latitud, longitud) {
+async function obtenerTiempo(latitud, longitud, ciudad) {
 	const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitud}&longitude=${longitud}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weathercode,windspeed_10m`;
 
 	const respuesta = await fetch(url);
 	const datos = await respuesta.json();
-
+	// construcción del objeto tiempoCiudad
 	const tiempoCiudad = {
 		hora: new Date(datos.current_weather.time),
 		horasRegistro: datos.hourly.time.map(h => new Date(h)),
-		horaMasProxima: null,
 		temperatura: datos.current_weather.temperature,
 		escalaTemperatura: datos.current_weather_units.temperature,
 		viento: datos.current_weather.windspeed,
 		escalaViento: datos.current_weather_units.windspeed,
 	};
-	tiempoCiudad.horaMasProxima = tiempoCiudad.hora.setMinutes(0, 0, 0);
+	// búsqueda de la hora más próxima en los registros horarios y obtención de la humedad
+	const horaMasProxima = new Date(tiempoCiudad.hora);
+	horaMasProxima.setMinutes(0, 0, 0);
+	const indice = tiempoCiudad.horasRegistro.findIndex(d => d.getTime() === horaMasProxima.getTime());
+	const humedad = indice > 0 ? datos.hourly.relative_humidity_2m[indice] : null;
 
-	return tiempoCiudad;
+	return {
+		ciudad: ciudad,
+		hora: tiempoCiudad.hora,
+		horaMasProxima: horaMasProxima,
+		indice: indice,
+		temperatura: tiempoCiudad.temperatura,
+		escalaTemperatura: tiempoCiudad.escalaTemperatura,
+		viento: tiempoCiudad.viento,
+		escalaViento: tiempoCiudad.escalaViento,
+		humedad: humedad,
+	};
 }
