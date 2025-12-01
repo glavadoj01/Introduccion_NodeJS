@@ -1,13 +1,13 @@
 {
   "name": "carpetanodejs",
   "version": "1.0.0",
-  "description": "",
+  "description": "Peticiónes API cartografía y meteorologia",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "GLJ",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
