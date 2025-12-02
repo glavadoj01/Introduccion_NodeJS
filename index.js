@@ -49,29 +49,30 @@ async function obtenerTiempo(latitud, longitud, ciudad) {
 	const respuesta = await fetch(url);
 	const datos = await respuesta.json();
 	// construcción del objeto tiempoCiudad
-	const tiempoCiudad = {
-		hora: new Date(datos.current_weather.time),
-		horasRegistro: datos.hourly.time.map(h => new Date(h)),
-		temperatura: datos.current_weather.temperature,
-		escalaTemperatura: datos.current_weather_units.temperature,
-		viento: datos.current_weather.windspeed,
-		escalaViento: datos.current_weather_units.windspeed,
-	};
+
+	const horaActual = new Date(datos.current_weather.time);
+	const horasRegistro = datos.hourly.time.map(h => new Date(h));
+	const temperatura = datos.current_weather.temperature;
+	const escalaTemperatura = datos.current_weather_units.temperature;
+	const viento = datos.current_weather.windspeed;
+	const escalaViento = datos.current_weather_units.windspeed;
+
 	// búsqueda de la hora más próxima en los registros horarios y obtención de la humedad
-	const horaMasProxima = new Date(tiempoCiudad.hora);
+	const horaMasProxima = new Date(horaActual.getTime());
 	horaMasProxima.setMinutes(0, 0, 0);
-	const indice = tiempoCiudad.horasRegistro.findIndex(d => d.getTime() === horaMasProxima.getTime());
+
+	const indice = horasRegistro.findIndex(d => d.getTime() == horaMasProxima.getTime());
 	const humedad = indice > 0 ? datos.hourly.relative_humidity_2m[indice] : null;
 
 	return {
 		ciudad: ciudad,
-		hora: tiempoCiudad.hora,
+		hora: horaActual,
 		horaMasProxima: horaMasProxima,
 		indice: indice,
-		temperatura: tiempoCiudad.temperatura,
-		escalaTemperatura: tiempoCiudad.escalaTemperatura,
-		viento: tiempoCiudad.viento,
-		escalaViento: tiempoCiudad.escalaViento,
+		temperatura: temperatura,
+		escalaTemperatura: escalaTemperatura,
+		viento: viento,
+		escalaViento: escalaViento,
 		humedad: humedad,
 	};
 }
