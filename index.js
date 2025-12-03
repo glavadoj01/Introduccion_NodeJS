@@ -27,14 +27,14 @@ async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 	const url = `https://geocoding-api.open-meteo.com/v1/search?name=${ciudad}&count=1&language=es&format=${format}`;
 
 	try {
-		// input: RequestInfo | URL string  ; output: Promise<Response>
+		// fetch => input: RequestInfo | URL:string  ; output: Promise<Response>
 		const respuesta = await fetch(url);
-		if (respuesta && respuesta.status !== 200) {
+		if (!respuesta || respuesta.status != 200) {
 			throw new Error(`Error en la solicitud de coordenadas: ${respuesta.status} ${respuesta.statusText}`);
 		}
 		// transformar la respuesta en json
 		const datos = await respuesta.json();
-		if (!datos.results || datos.results.length === 0) {
+		if (!datos.results || datos.results.length == 0) {
 			throw new Error(`No se encontraron resultados para la ciudad: ${ciudad}`);
 		}
 		// obtener el primer resultado/objeto del JSON
@@ -44,6 +44,9 @@ async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 			latitud: lugar.latitude,
 			longitud: lugar.longitude,
 		};
+		if (!coordenadas.latitud || !coordenadas.longitud) {
+			throw new Error(`No se encontraron coordenadas válidas para la ciudad: ${ciudad}`);
+		}
 		// devuelve objeto coordenadas = {latitud:xx, longitud:yy}
 		return coordenadas;
 	} catch (error) {
@@ -63,7 +66,7 @@ async function obtenerTiempo(latitud, longitud, ciudad) {
 		}
 		// transformar la respuesta en json
 		const datos = await respuesta.json();
-		if (!datos.current_weather || !datos.hourly) {
+		if (!datos || !datos.current_weather || !datos.hourly) {
 			throw new Error(`No se encontraron datos meteorológicos para las coordenadas: ${latitud}, ${longitud}`);
 		}
 		/*
