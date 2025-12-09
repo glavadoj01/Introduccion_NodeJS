@@ -29,7 +29,7 @@ const Usuario = mongoose.model("Usuario", UsuarioSchema, "Usuario");
 // El tercer parámetro especifica el nombre exacto de la colección, si no cambia plurales y minusculas
 
 // Ruta de prueba para verificar que el servidor funciona
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
 	res.send("Servidor Express funcionando");
 });
 

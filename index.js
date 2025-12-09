@@ -1,12 +1,14 @@
-const express = require("express");
+import express from "express";
 const app = express();
 
-app.get("/", (req, res) => {
+// Ruta de pruebas para verificar que el servidor funciona (opcional)
+app.get("/", (_req, res) => {
 	res.send("Servidor Express funcionando");
 });
 
+// Ruta para obtener el clima de una ciudad pasada como query parameter
 app.get("/clima", async (req, res) => {
-	const ciudad = req.query.ciudad || "zafra";
+	const ciudad = req.query.ciudad ? String(req.query.ciudad) : "zafra";
 
 	if (!ciudad) return res.status(400).json({ error: "Debes indicar una ciudad usando ?ciudad=Nombre" });
 
@@ -19,10 +21,17 @@ app.get("/clima", async (req, res) => {
 	}
 });
 
+// Iniciar el servidor en el puerto 3000
 app.listen(3000, () => {
 	console.log("Servidor escuchando en el puerto 3000");
 });
 
+/**
+ * @param {string} ciudad
+ * @param {string} format
+ * @returns {Promise<Object>} Objeto con latitud y longitud
+ *                   Objeto: {latitud: xx, longitud: yy}
+ */
 async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 	const url = `https://geocoding-api.open-meteo.com/v1/search?name=${ciudad}&count=1&language=es&format=${format}`;
 
@@ -41,8 +50,8 @@ async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 		const lugar = datos.results[0];
 		// desestructuración del objeto (lugar) para obtener latitud y longitud
 		const coordenadas = {
-			latitud: lugar.latitude,
-			longitud: lugar.longitude,
+			latitud: lugar.latitude ? String(lugar.latitude) : null,
+			longitud: lugar.longitude ? String(lugar.longitude) : null,
 		};
 		if (!coordenadas.latitud || !coordenadas.longitud) {
 			throw new Error(`No se encontraron coordenadas válidas para la ciudad: ${ciudad}`);
@@ -54,6 +63,12 @@ async function obtenerCoordenadas(ciudad = "zafra", format = "json") {
 	}
 }
 
+/**
+ * @param {string} latitud
+ * @param {string} longitud
+ * @param {string} ciudad
+ * @returns {Promise<Object>} Objeto con datos meteorológicos
+ */
 async function obtenerTiempo(latitud, longitud, ciudad) {
 	const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitud}&longitude=${longitud}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weathercode,windspeed_10m`;
 	try {
