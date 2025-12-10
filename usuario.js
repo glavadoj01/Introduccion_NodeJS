@@ -46,6 +46,19 @@ app.post("/usuario", async (req, res) => {
 	}
 });
 
+// Ruta Listar Todos los Usuarios
+app.get("/usuario", async (_req, res) => {
+	try {
+		const usuarios = await Usuario.find();
+		if (usuarios.length === 0) {
+			return res.status(404).json({ mensaje: "No se encontrarón usuarios" });
+		}
+		return res.status(201).json(usuarios);
+	} catch (error) {
+		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+	}
+});
+
 // Ruta Obtener Usuarios por id
 app.get("/usuario/:id", async (req, res) => {
 	try {
@@ -53,9 +66,25 @@ app.get("/usuario/:id", async (req, res) => {
 		if (!usuarioEncontrado) {
 			return res.status(404).json({ mensaje: "Usuario no encontrado", id: req.params.id });
 		}
-		res.json(usuarioEncontrado);
+		res.status(201).json(usuarioEncontrado);
 	} catch (error) {
-		res.status(400).json({ mensaje: "Error al obtener el usuario", error: error.message });
+		res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+	}
+});
+
+// Actualizar Usuario por id
+app.put("/usuario/:id", async (req, res) => {
+	const id = req.params.id;
+	const datosActualizados = req.body;
+	try {
+		const usuarioActualizado = await Usuario.findByIdAndUpdate(id, datosActualizados, { new: true, upsert: true });
+
+		return res.status(201).json({
+			mensaje: "Usuario actualizado exitosamente",
+			usuario: usuarioActualizado,
+		});
+	} catch (error) {
+		res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
 	}
 });
 
