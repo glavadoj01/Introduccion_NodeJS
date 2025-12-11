@@ -66,9 +66,9 @@ app.get("/usuario/:id", async (req, res) => {
 		if (!usuarioEncontrado) {
 			return res.status(404).json({ mensaje: "Usuario no encontrado", id: req.params.id });
 		}
-		res.status(201).json(usuarioEncontrado);
+		return res.status(201).json(usuarioEncontrado);
 	} catch (error) {
-		res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
 	}
 });
 
@@ -84,7 +84,7 @@ app.put("/usuario/:id", async (req, res) => {
 			usuario: usuarioActualizado,
 		});
 	} catch (error) {
-		res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
 	}
 });
 
