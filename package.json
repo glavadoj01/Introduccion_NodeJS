@@ -1,8 +1,8 @@
 {
   "name": "carpetanodejs",
   "version": "1.0.0",
-  "description": "Peticiónes API cartografía y meteorologia",
-  "main": "index.js",
+  "description": "Peticiónes API didacticas con NodeJS, Express y MongoDB",
+  "main": "tarea.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon"
