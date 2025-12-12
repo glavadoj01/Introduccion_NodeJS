@@ -83,7 +83,6 @@ app.get("/api/libros/:genero", async (req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta para persistencia
 app.post("/api/persistir/:genero", async (req, res) => {
 	// Obtener el género de los parámetros de la ruta; ej => /api/libros/romance
@@ -106,8 +105,17 @@ app.post("/api/persistir/:genero", async (req, res) => {
 		const librosFormateados = await formatearLibros(coleccionLibros);
 
 		// Guardar los libros formateados en la base de datos
-		// TODO: Por Hacer
-		return null;
+		let libros = [];
+		for (let libroData of librosFormateados) {
+			const nuevoLibro = await Libros.create(libroData);
+			if (!nuevoLibro) {
+				return res
+					.status(500)
+					.json({ mensaje: "Error al crear el libro en la base de datos", libro: libroData });
+			}
+			libros.push(nuevoLibro);
+		}
+		return res.status(200).json({ mensaje: "Libros guardados exitosamente", libros: libros });
 	} catch (error) {
 		return res.status(400).json({ error: error.message });
 	}
@@ -183,13 +191,6 @@ app.put("/libro/:id", async (req, res) => {
 		return res.status(400).json({ mensaje: "Debes enviar los datos a actualizar en el cuerpo de la solicitud" });
 	}
 
-	// ! ===============================
-	// ? ¿Se pueden permitir campos nuevos?
-	if (Object.keys(datosActualizados).length === 0) {
-		return res.status(400).json({ mensaje: "Debes enviar los datos a actualizar" });
-	}
-	// ! ===============================
-	// ? O solo permitir los campos del esquema
 	if (
 		!datosActualizados.titulo &&
 		!datosActualizados.autores &&
@@ -203,7 +204,6 @@ app.put("/libro/:id", async (req, res) => {
 				"Debes enviar al menos un campo válido para actualizar: titulo, autores, fecha_publicacion, genero, codigo_ISBN, descripcion",
 		});
 	}
-	// ! ===============================
 
 	// Verificar los campos que están presentes
 	if (datosActualizados.titulo && verificarTitulo(datosActualizados.titulo) === false) {
@@ -247,7 +247,6 @@ app.put("/libro/:id", async (req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta delete para eliminar un libro en la base de datos
 app.delete("/libro/:id", async (req, res) => {
 	const id = req.params.id.trim();
@@ -255,7 +254,17 @@ app.delete("/libro/:id", async (req, res) => {
 		return res.status(400).json({ mensaje: "Debes proporcionar un ID de libro para eliminar" });
 	}
 	try {
-	} catch (error) {}
+		const libroEliminado = await Libros.findByIdAndDelete(id);
+		if (!libroEliminado) {
+			return res.status(404).json({ mensaje: "Libro no encontrado", id: id });
+		}
+		return res.status(200).json({
+			mensaje: "Libro eliminado exitosamente",
+			libro: libroEliminado,
+		});
+	} catch (error) {
+		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+	}
 });
 
 // Ruta get para listar todos los libros en la base de datos
@@ -271,35 +280,34 @@ app.get("/catalogo", async (_req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta get para obtener un libro según el filtro envíado (título, autor, género)
 app.get("/libro", async (req, res) => {
 	// Determinar el tipo de filtro y su valor
 	let tipoFiltro, valor;
-	if (req.query.titulo) {
-		tipoFiltro = "titulo";
-		valor = req.query.titulo;
-	} else if (req.query.autores) {
-		tipoFiltro = "autores";
-		valor = req.query.autores;
-	} else if (req.query.genero) {
-		tipoFiltro = "genero";
-		valor = req.query.genero;
-	} else {
-		return res.status(400).json({
-			mensaje: "Debes enviar uno de estos parámetros: titulo, autores o genero; ej => /libro?autores=cervantes",
-		});
-	}
-
-	// Verificar que el valor sea string
-	if (typeof valor !== "string" || valor.trim() === "") {
-		return res.status(400).json({ mensaje: "El valor del filtro debe ser un texto" });
-	}
 
 	// Realizar la búsqueda según el tipo de filtro
 	try {
-		let resultados = {};
-		// TODO: Por Hacer ¿Función?
+		let filtros = {};
+		if (req.query.titulo) {
+			filtros.titulo = { $regex: req.query.titulo, $options: "i" }; // Búsqueda case-insensitive
+		} else if (req.query.autores) {
+			filtros.autores = { $regex: req.query.autores, $options: "i" }; // Búsqueda case-insensitive
+		} else if (req.query.genero) {
+			filtros.genero = { $regex: req.query.genero, $options: "i" }; // Búsqueda case-insensitive
+		} else {
+			return res.status(400).json({
+				mensaje:
+					"Debes enviar uno de estos parámetros: titulo, autores o genero; ej => /libro?autores=cervantes",
+			});
+		}
+		for (const key in filtros) {
+			// Verificar que el valor sea string
+
+			if (!filtros[key].$regex || typeof filtros[key].$regex !== "string") {
+				return res.status(400).json({ mensaje: "El valor del filtro debe ser un texto" });
+			}
+		}
+		const resultados = await Libros.find(filtros);
 
 		// Verificar que se hayan encontrado resultados para el filtro
 		if (Object.keys(resultados).length === 0) {
