@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Gonzalo Lavado">
+    <title>Demostración de uso</title>
+    <link rel="stylesheet" href="./css/general.css">
+</head>
+
+<body>
+    <header>
+        <h1>Demostración de uso</h1>
+        <h4>API Local de libros</h4>
+    </header>
+    <main class="contenedorFlex">
+        <section class="elemento FlexCol">
+            <h2>Introducción</h2>
+            <p>Esta página demuestra cómo utilizar la API local de libros para gestionar una colección de libros.</p>
+            <hr>
+            <h2>Funciones Externas</h2>
+            <ul>
+                <li><strong>GET /api/libros/:genero</strong>: Obtiene una lista de libros relacionados con la tematica
+                    (generos similares, contiene titutlo, ...).</li>
+                <li><strong>POST /api/persistir/:genero</strong>: Misma consulta que GET, pero guardando resultados en
+                    BD Local.</li>
+            </ul>
+            <hr>
+            <h2>Funciones principales de la BD Local</h2>
+            <ul>
+                <li><strong>GET /</strong>: Ruta de confirmación de funcionamiento y muestra de rutas</li>
+                <li><strong>POST /libro</strong>: Agrega un nuevo libro</li>
+                <li><strong>PUT /libro/:id</strong>: Actualizar información de un libro</li>
+                <li><strong>DELETE /libro/:id</strong>: Eliminar un libro existente</li>
+                <li><strong>GET /catalogo</strong>: Listar todos los libros disponibles</li>
+                <li><strong>GET /libro?filtro=valor</strong>: Listar con filtros por titulo, autor y/o genero</li>
+                <li><strong>USE invalid URL</strong>: Redirige a Página de Confirmación con indicación de error en Ruta
+                </li>
+                <li><strong>GET /demo</strong>: Esta pagina demostrativa</li>
+            </ul>
+        </section>
+        <section class="elemento FlexCol">
+            <h2>Ejemplos de uso - Video Demostrativo</h2>
+            <iframe width="560" height="315" title="YouTube video player" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen alt="Video no disponible" src="">
+                Tu navegador no soporta el elemento de video.</iframe>
+        </section>
+        <section class="elemento FlexCol">
+            <h2>Iniciación API LOCAL</h2>
+            <div>
+                <h3>Situación Previa a inicio</h3>
+                <img src="./img/00.png">
+            </div>
+            <hr>
+            <div>
+                <h3>Comando de Inicio</h3>
+                <p>Se crea la colección si no existe</p>
+                <img src="./img/01.png">
+            </div>
+            <hr>
+            <div>
+                <h3>Ruta de verificación</h3>
+                <img src="./img/03.png">
+            </div>
+        </section>
+
+        <section class="elemento FlexCol">
+            <h2>Api Externa</h2>
+            <div>
+                <h3>GET /api/libros/:genero</h3>
+                <img src="./img/04.png">
+            </div>
+            <hr>
+            <div>
+                <h3>POST /api/persistir/:genero</h3>
+                <img src="./img/05.png">
+            </div>
+        </section>
+
+        <section class="elemento FlexCol">
+            <h2>Funcionalidades API Local + BD Local</h2>
+            <div>
+                <h3>POST /libro</h3>
+                <img src="./img/06.png">
+            </div>
+            <hr>
+            <div>
+                <h3>PUT /libro/:id</h3>
+                <img src="./img/07.png">
+            </div>
+            <hr>
+            <div>
+                <h3>DELETE /libro/:id</h3>
+                <img src="./img/08.png">
+            </div>
+            <hr>
+            <div>
+                <h3>GET /catalogo</h3>
+                <img src="./img/09.png">
+            </div>
+            <hr>
+            <div>
+                <h3>GET /libro?filtro=valor</h3>
+                <img src="./img/10.png">
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>Gonzalo Lavado - 2025</p>
+    </footer>
+</body>
+
+</html>

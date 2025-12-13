@@ -1,9 +1,16 @@
+/* NOTA IMPORTANTE:
+1º Dependencias: npm install
+2º LEVANTAR CON: npm start   (o node tarea.js; start configurado en package.json)
+3º VISITAR: http://localhost:3000/demo   (explicación y demostración de la API en video e imágenes)
+*/
+
 /* ================================
 REQUISITOS Y CONFIGURACION PREVIA:
 ================================ */
 // Importacion de librerias externas
 import express from "express";
 import mongoose from "mongoose";
+import path from "path"; // Para redireción de rutas a archivos estáticos
 // Importacion de funciones auxiliares
 import { obtenerLibrosPorGenero } from "./api/obtenerLibrosPorGenero.js";
 import { formatearLibros } from "./api/formatearLibros.js";
@@ -29,6 +36,10 @@ Configuración de Express y Mongoose:
 const app = express();
 // Middleware para parsear JSON
 app.use(express.json()); // En postman, seleccionar Body -> raw -> JSON => Enviar formato JSON
+// Middleware para servir archivos estáticos (HTML, CSS, JS, imágenes) (Explicado por IA)
+app.use(express.static(path.resolve("html")));
+app.use(express.static(path.resolve("img")));
+
 // Para la conexión con MongoDB
 mongoose
 	.connect("mongodb://localhost:27017/apiLibros")
@@ -326,6 +337,10 @@ app.get("/libro", async (req, res) => {
 	} catch (error) {
 		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
 	}
+});
+
+app.get("/demo", (_req, res) => {
+	res.redirect("/demostracion.html");
 });
 
 // Ruta invalida
