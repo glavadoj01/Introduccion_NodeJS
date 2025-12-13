@@ -83,7 +83,6 @@ app.get("/api/libros/:genero", async (req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta para persistencia
 app.post("/api/persistir/:genero", async (req, res) => {
 	// Obtener el género de los parámetros de la ruta; ej => /api/libros/romance
@@ -106,8 +105,21 @@ app.post("/api/persistir/:genero", async (req, res) => {
 		const librosFormateados = await formatearLibros(coleccionLibros);
 
 		// Guardar los libros formateados en la base de datos
-		// TODO: Por Hacer
-		return null;
+		let librosGuardados = [];
+		for (const libroData of librosFormateados) {
+			const nuevoLibro = await Libros.create(libroData);
+			if (!nuevoLibro) {
+				return res.status(500).json({
+					mensaje: `Error al guardar el libro en la base de datos. Operación abortada tras guardar ${librosGuardados.length} libros.`,
+					libro: libroData,
+				});
+			}
+			librosGuardados.push(nuevoLibro);
+		}
+		return res.status(201).json({
+			mensaje: `Se han guardado ${librosGuardados.length} elementos del género ${genero} guardados exitosamente`,
+			libros: librosGuardados,
+		});
 	} catch (error) {
 		return res.status(400).json({ error: error.message });
 	}
@@ -157,7 +169,7 @@ app.post("/libro", async (req, res) => {
 		];
 	}
 	// Siempre asignar el ISBN_Pr basado en el codigo_ISBN proporcionado en 1º lugar (si hay varios)
-	datosLibro.ISBN_Pr = datosLibro.codigo_ISBN[0].type + datosLibro.codigo_ISBN[0].identifier;
+	datosLibro.ISBN_Pr = datosLibro.codigo_ISBN[0].type + "-" + datosLibro.codigo_ISBN[0].identifier;
 	// Asegurar que la descripción sea null si no se proporciona
 	if (!datosLibro.descripcion) {
 		datosLibro.descripcion = null;
@@ -183,27 +195,19 @@ app.put("/libro/:id", async (req, res) => {
 		return res.status(400).json({ mensaje: "Debes enviar los datos a actualizar en el cuerpo de la solicitud" });
 	}
 
-	// ! ===============================
-	// ? ¿Se pueden permitir campos nuevos?
-	if (Object.keys(datosActualizados).length === 0) {
-		return res.status(400).json({ mensaje: "Debes enviar los datos a actualizar" });
-	}
-	// ! ===============================
-	// ? O solo permitir los campos del esquema
+	// Verificar que no se envíen campos no permitidos
 	if (
-		!datosActualizados.titulo &&
-		!datosActualizados.autores &&
-		!datosActualizados.fecha_publicacion &&
-		!datosActualizados.genero &&
-		!datosActualizados.codigo_ISBN &&
-		!datosActualizados.descripcion
+		Object.keys(datosActualizados).length === 0 ||
+		Object.keys(datosActualizados).some(
+			// some = "algún" => Sí alguna clave no(!) esta incluida en el array de campos permitidos.
+			key => !["titulo", "autores", "fecha_publicacion", "genero", "codigo_ISBN", "descripcion"].includes(key)
+		)
 	) {
 		return res.status(400).json({
 			mensaje:
-				"Debes enviar al menos un campo válido para actualizar: titulo, autores, fecha_publicacion, genero, codigo_ISBN, descripcion",
+				"Solo se permiten los siguientes campos para actualizar: titulo, autores, fecha_publicacion, genero, codigo_ISBN, descripcion",
 		});
 	}
-	// ! ===============================
 
 	// Verificar los campos que están presentes
 	if (datosActualizados.titulo && verificarTitulo(datosActualizados.titulo) === false) {
@@ -227,7 +231,8 @@ app.put("/libro/:id", async (req, res) => {
 
 	// Si se actualiza el codigo_ISBN, actualizar tambien el ISBN_Pr
 	if (datosActualizados.codigo_ISBN) {
-		datosActualizados.ISBN_Pr = datosActualizados.codigo_ISBN[0].type + datosActualizados.codigo_ISBN[0].identifier;
+		datosActualizados.ISBN_Pr =
+			datosActualizados.codigo_ISBN[0].type + "-" + datosActualizados.codigo_ISBN[0].identifier;
 	}
 
 	// Actualizar el libro en la base de datos
@@ -247,7 +252,6 @@ app.put("/libro/:id", async (req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta delete para eliminar un libro en la base de datos
 app.delete("/libro/:id", async (req, res) => {
 	const id = req.params.id.trim();
@@ -255,7 +259,17 @@ app.delete("/libro/:id", async (req, res) => {
 		return res.status(400).json({ mensaje: "Debes proporcionar un ID de libro para eliminar" });
 	}
 	try {
-	} catch (error) {}
+		const libroEliminado = await Libros.findByIdAndDelete(id);
+		if (!libroEliminado) {
+			return res.status(404).json({ mensaje: "Libro no encontrado", id: id });
+		}
+		return res.status(200).json({
+			mensaje: "Libro eliminado exitosamente",
+			libro: libroEliminado,
+		});
+	} catch (error) {
+		return res.status(500).json({ mensaje: "Error al conectar con la BD", error: error.message });
+	}
 });
 
 // Ruta get para listar todos los libros en la base de datos
@@ -271,41 +285,42 @@ app.get("/catalogo", async (_req, res) => {
 	}
 });
 
-// TODO: Por Hacer
 // Ruta get para obtener un libro según el filtro envíado (título, autor, género)
 app.get("/libro", async (req, res) => {
-	// Determinar el tipo de filtro y su valor
-	let tipoFiltro, valor;
-	if (req.query.titulo) {
-		tipoFiltro = "titulo";
-		valor = req.query.titulo;
-	} else if (req.query.autores) {
-		tipoFiltro = "autores";
-		valor = req.query.autores;
-	} else if (req.query.genero) {
-		tipoFiltro = "genero";
-		valor = req.query.genero;
-	} else {
-		return res.status(400).json({
-			mensaje: "Debes enviar uno de estos parámetros: titulo, autores o genero; ej => /libro?autores=cervantes",
-		});
-	}
-
-	// Verificar que el valor sea string
-	if (typeof valor !== "string" || valor.trim() === "") {
-		return res.status(400).json({ mensaje: "El valor del filtro debe ser un texto" });
-	}
-
-	// Realizar la búsqueda según el tipo de filtro
 	try {
-		let resultados = {};
-		// TODO: Por Hacer ¿Función?
+		// Determinar los tipos de filtros y sus valores (deben estar en el try catch para evitar fallos de definición faltante)
+		let filtros = {};
+		if (req.query.titulo) {
+			filtros.titulo = { $regex: req.query.titulo, $options: "i" }; // Búsqueda case-insensitive
+		}
+		if (req.query.autores) {
+			filtros.autores = { $regex: req.query.autores, $options: "i" }; // Búsqueda case-insensitive
+		}
+		if (req.query.genero) {
+			filtros.genero = { $regex: req.query.genero, $options: "i" }; // Búsqueda case-insensitive
+		}
+		// Verificar que se haya enviado al menos un filtro
+		if (Object.keys(filtros).length === 0) {
+			return res.status(400).json({
+				mensaje:
+					"Debes enviar uno de estos parámetros: titulo, autores o genero; ej => /libro?autores=cervantes",
+			});
+		}
+		// Verificar que el valor sea string
+		for (const key in filtros) {
+			if (!filtros[key].$regex || typeof filtros[key].$regex !== "string") {
+				return res.status(400).json({ mensaje: "El valor del filtro debe ser un texto" });
+			}
+		}
+		// Realizar la búsqueda según el tipo de filtro
+		const resultados = await Libros.find(filtros);
 
 		// Verificar que se hayan encontrado resultados para el filtro
-		if (Object.keys(resultados).length === 0) {
-			return res
-				.status(404)
-				.json({ mensaje: `No se encontraron libros para el filtro de ${tipoFiltro}: ${valor}` });
+		if (resultados.length === 0) {
+			const resumen = Object.entries(filtros)
+				.map(([k, v]) => `${k}='${v.$regex}'`)
+				.join(" | ");
+			return res.status(404).json({ mensaje: `No se encontraron libros para: ( ${resumen} )` });
 		}
 		return res.status(200).json(resultados);
 	} catch (error) {

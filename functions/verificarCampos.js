@@ -50,7 +50,7 @@ function verificarGenero(genero) {
 }
 
 function verificarISBN(codigo_ISBN) {
-	if (!Array.isArray(codigo_ISBN)) return false;
+	if (!Array.isArray(codigo_ISBN) || codigo_ISBN.length === 0) return false;
 	for (let { type, identifier } of codigo_ISBN) {
 		if (typeof type !== "string" || typeof identifier !== "string") {
 			return false;
