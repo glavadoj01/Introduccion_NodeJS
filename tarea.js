@@ -10,7 +10,6 @@ Notas v2:
         por lo que se añade verificación manual previa.
     - Comentarios aclaratorios en el código.
 */
-
 /* ================================
 REQUISITOS Y CONFIGURACION PREVIA:
 ================================ */
