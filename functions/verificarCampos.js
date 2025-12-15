@@ -10,9 +10,9 @@ function verificarCampos(datosLibro) {
 	if (verificarFecha(datosLibro.fecha_publicacion) === false) return 3; // Falta fecha o formato incorrecto
 
 	// Verificar los formatos de los campos opcionales si están presentes
-	if (datosLibro.genero && verificarGenero(datosLibro.genero) === false) return 4; // Formato incorrecto en género
-	if (datosLibro.codigo_ISBN && verificarISBN(datosLibro.codigo_ISBN) === false) return 5; // Formato incorrecto en código_ISBN
-	if (datosLibro.descripcion && verificarDescripcion(datosLibro.descripcion) === false) return 6; // Formato incorrecto en descripción
+	if (datosLibro.genero !== undefined && verificarGenero(datosLibro.genero) === false) return 4; // Formato incorrecto en género
+	if (datosLibro.codigo_ISBN !== undefined && verificarISBN(datosLibro.codigo_ISBN) === false) return 5; // Formato incorrecto en código_ISBN
+	if (datosLibro.descripcion !== undefined && verificarDescripcion(datosLibro.descripcion) === false) return 6; // Formato incorrecto en descripción
 
 	return 0; // Todos los campos son válidos
 }
@@ -50,7 +50,7 @@ function verificarGenero(genero) {
 }
 
 function verificarISBN(codigo_ISBN) {
-	if (!Array.isArray(codigo_ISBN)) return false;
+	if (!Array.isArray(codigo_ISBN) || codigo_ISBN.length === 0) return false;
 	for (let { type, identifier } of codigo_ISBN) {
 		if (typeof type !== "string" || typeof identifier !== "string") {
 			return false;

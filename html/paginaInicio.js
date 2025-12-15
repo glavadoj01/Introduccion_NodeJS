@@ -15,6 +15,7 @@ let paginaInicio = `<div style="margin: 2rem auto; padding: 1rem; width:fit-cont
                 <li>DELETE /libro/:id - Eliminar un libro por ID</li>
                 <li>GET /catalogo - Listar todos los libros en la base de datos</li>
                 <li>GET /libro?titulo=... | /libro?autores=... | /libro?genero=... - Obtener libros según filtro</li>
+                <li>GET /demo - Ver demostración de las funcionalidades del servidor</li>
             </ul>
         </li>
     </ul>
